@@ -1,0 +1,107 @@
+---
+title: "USCIS"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data = read.table("/Users/caden/Downloads/uscis_cases.txt", sep = ",", quote = "")
+data = data[-c(1),]
+names(data) <- c("Casenumber", "Status", "Time")
+data = data[!data$Status == "None",]
+```
+
+```{r}
+#unique(data$Status)
+```
+
+
+```{r}
+data$Casenumber = as.numeric(data$Casenumber)
+data$Status = as.character(data$Status)
+data$Time = as.Date(data$Time)
+```
+
+
+```{r}
+for (row in 1:nrow(data)) {
+  if (data[row, "Status"] == "Case Was Received") {
+    data[row, "Status_Binary"] = 0
+  } else {
+    data[row, "Status_Binary"] = 1
+  }
+}
+```
+
+
+```{r xlim = 5}
+plot(data$Casenumber, data$Status_Binary)
+```
+
+```{r, xlim = 5}
+data_ead = data[data$Status == "Card Was Mailed To Me", ]
+plot(data_ead$Casenumber, data_ead$Time)
+```
+
+```{r}
+for (row in 1:nrow(data_ead)) {
+  data_ead[row, "Day"] = data_ead[row, "Time"] - min(data_ead$Time)
+}
+```
+
+```{r}
+plot(data_ead$Casenumber, data_ead$Day)
+```
+
+
+```{r}
+x = data_ead$Casenumber
+y = data_ead$Day
+model = lm(y ~ x)
+```
+
+
+```{r}
+newdata = data.frame(x = 391)
+result = predict(model, newdata = newdata)
+print(result)
+```
+
+```{r}
+print(min(data_ead$Time) + round(result))
+```
+
+
+```{r}
+plot(x,y,col = "blue",main = "Regression1",
+abline(lm(y~x)),cex = 1.3,pch = 16,xlab = "Case Number",ylab = "Day")
+```
+```{r}
+data_ead_modified = data_ead
+data_ead_modified = data_ead_modified[data_ead_modified$Casenumber < 220,]
+```
+
+```{r}
+x = data_ead_modified$Casenumber
+y = data_ead_modified$Day
+model = lm(y ~ x)
+```
+
+```{r}
+newdata = data.frame(x = 391)
+result = predict(model, newdata = newdata)
+print(result)
+```
+
+```{r}
+print(min(data_ead$Time) + round(result))
+```
+
+
+```{r}
+plot(x,y,col = "blue",main = "Regression2",
+abline(lm(y~x)),cex = 1.3,pch = 16,xlab = "Case Number",ylab = "Day")
+```
